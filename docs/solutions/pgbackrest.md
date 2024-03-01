@@ -39,9 +39,10 @@ You also need a backup storage to store the backups. It can either be a remote s
     export NODE3_NAME="node-3"
     ```
 
-2. Create the `pgBackRest` repository
+2. Create the `pgBackRest` repository, *if necessary*
 
-    A repository is where `pgBackRest` stores backups. In this example, the backups will be saved to `/var/lib/pgbackrest`
+    A repository is where `pgBackRest` stores backups. In this example, the backups will be saved to `/var/lib/pgbackrest`.
+    This directory is usually created during pgBackRest's installation process. If it's not there already:
 
     ```{.bash data-prompt="$"}
     $ sudo mkdir -p /var/lib/pgbackrest
@@ -49,9 +50,18 @@ You also need a backup storage to store the backups. It can either be a remote s
     $ sudo chown postgres:postgres /var/lib/pgbackrest
     ```
 
-3. The default pgBackRest configuration file location is `/etc/pgbackrest/pgbackrest.conf`. If it does not exist, then `/etc/pgbackrest.conf` is used next. Edit the `pgbackrest.conf` file to include the following configuration:
+3. The default `pgBackRest` configuration file location is `/etc/pgbackrest/pgbackrest.conf` but some systems continue to use the old default file, `/etc/pgbackrest.conf`, which remains a valid alternative. If the former is not present in your system, create the latter.
+
+   Access the file's parent directory (either `cd /etc/` or `cd /etc/pgbackrest/`), make a backup copy of it:
+   
+    ```
+    cp pgbackrest.conf pgbackrest.conf.orig
+    ```
+
+   Then use the following command to create a basic configuration file using the environment variables we created in a previous step:
 
     ```
+    cat <<EOF > pgbackrest.conf
     [global] 
 
     # Server repo details
@@ -127,9 +137,10 @@ You also need a backup storage to store the backups. It can either be a remote s
     pg3-host-key-file=/pg_ha/certs/${SRV_NAME}.key
     pg3-host-ca-file=/pg_ha/certs/ca.crt
     pg3-socket-path=/var/run/postgresql
+    EOF
     ```
 
-4. Create the `systemd` unit file at the path `/etc/systemd/system/pgbackrest.service`
+5. Create the `systemd` unit file at the path `/etc/systemd/system/pgbackrest.service`
 
     ```ini title="/etc/systemd/system/pgbackrest.service"
     [Unit]
